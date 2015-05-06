@@ -1,26 +1,16 @@
 require 'bundler'
 Bundler.require
 
+
 STDOUT.sync = true
 
-Mongoid.load!('mongoid.yml')
-
-class LogEntry
-  include Mongoid::Document
-  field :message, type: String
-  field :token, type: String
-end
-
-class Resource
-  include Mongoid::Document
-  field :heroku_id, type: String
-  field :plan, type: String
-  field :region, type: String
-  field :callback_url, type: String
-  field :options, type: String
-end
+require_relative 'mongo'
 
 class App < Sinatra::Base
+  configure :development do
+    register Sinatra::Reloader
+  end
+
   use Rack::Session::Cookie, secret: ENV['SSO_SALT']
 
   helpers do
@@ -92,6 +82,10 @@ class App < Sinatra::Base
     sso
   end
 
+  post '/drain' do
+    puts params.inspect
+  end
+
   # provision
   post '/heroku/resources' do
     show_request
@@ -106,8 +100,8 @@ class App < Sinatra::Base
     )
     status 201
     body({
-           :id => resource.id,
-           :config => {"LET_IT_DRAIN_URL" => 'http://yourapp.com/user'},
+           :id => resource.id.to_s,
+           :config => {"LET_IT_DRAIN_URL" => "http://#{request.host}:#{request.port}/drain"},
     }.to_json)
   end
 
