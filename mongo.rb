@@ -3,7 +3,7 @@ Mongoid.load!('mongoid.yml')
 class LogEntry
   include Mongoid::Document
   field :message, type: String
-  field :token, type: String
+  field :resource_id, type: String
 end
 
 class Resource

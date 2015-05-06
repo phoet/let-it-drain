@@ -82,8 +82,10 @@ class App < Sinatra::Base
     sso
   end
 
-  post '/drain' do
+  post '/drain/:id' do
     puts params.inspect
+    puts body = request.body.read
+    LogEntry.create! resource_id: params[:id], message: body
   end
 
   # provision
@@ -101,7 +103,7 @@ class App < Sinatra::Base
     status 201
     body({
            :id => resource.id.to_s,
-           :config => {"LET_IT_DRAIN_URL" => "http://#{request.host}:#{request.port}/drain"},
+           :config => {"LET_IT_DRAIN_URL" => "http://#{request.host}:#{request.port}/drain/#{resource.id.to_s}"},
     }.to_json)
   end
 
