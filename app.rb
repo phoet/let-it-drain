@@ -3,12 +3,25 @@ Bundler.require
 
 STDOUT.sync = true
 
+Mongoid.load!('mongoid.yml')
+
+class LogEntry
+  include Mongoid::Document
+  field :message, type: String
+  field :token, type: String
+end
+
+class Resource
+  include Mongoid::Document
+  field :heroku_id, type: String
+  field :plan, type: String
+  field :region, type: String
+  field :callback_url, type: String
+  field :options, type: String
+end
+
 class App < Sinatra::Base
   use Rack::Session::Cookie, secret: ENV['SSO_SALT']
-
-  @@resources = []
-
-  Resource = Class.new(OpenStruct)
 
   helpers do
     def protected!
@@ -21,7 +34,7 @@ class App < Sinatra::Base
     def authorized?
       @auth ||=  Rack::Auth::Basic::Request.new(request.env)
       @auth.provided? && @auth.basic? && @auth.credentials &&
-      @auth.credentials == [ENV['HEROKU_USERNAME'], ENV['HEROKU_PASSWORD']]
+        @auth.credentials == [ENV['HEROKU_USERNAME'], ENV['HEROKU_PASSWORD']]
     end
 
     def show_request
@@ -40,7 +53,7 @@ class App < Sinatra::Base
     end
 
     def get_resource
-      @@resources.find {|u| u.id == params[:id].to_i } or halt 404, 'resource not found'
+      Resource.find(params[:id]) or halt 404, 'resource not found'
     end
   end
 
@@ -83,21 +96,18 @@ class App < Sinatra::Base
   post '/heroku/resources' do
     show_request
     protected!
-    if json_body['region'] != 'amazon-web-services::us-east-1'
-      status 422
-      body({:error => 'Region is not supported by this provider.'}.to_json)
-    end
-    @@resources << resource = Resource.new(:id => @@resources.size + 1,
-                            :heroku_id => json_body['heroku_id'],
-                            :plan => json_body.fetch('plan', 'test'),
-                            :region => json_body['region'],
-                            :callback_url => json_body['callback_url'],
-                            :options => json_body['options'])
+
+    resource = Resource.create!(
+      :heroku_id => json_body['heroku_id'],
+      :plan => json_body.fetch('plan', 'test'),
+      :region => json_body['region'],
+      :callback_url => json_body['callback_url'],
+      :options => json_body['options']
+    )
     status 201
     body({
-      :id => resource.id,
-      :config => {"MYADDON_URL" => 'http://yourapp.com/user'},
-      # :message => 'Optional success message here!'
+           :id => resource.id,
+           :config => {"LET_IT_DRAIN_URL" => 'http://yourapp.com/user'},
     }.to_json)
   end
 
@@ -105,7 +115,7 @@ class App < Sinatra::Base
   delete '/heroku/resources/:id' do
     show_request
     protected!
-    @@resources.delete(get_resource)
+    get_resource.destroy
     "ok"
   end
 
@@ -114,7 +124,8 @@ class App < Sinatra::Base
     show_request
     protected!
     resource = get_resource
-    resource.plan = json_body['plan']
+    resource.update_attributes! plan: json_body['plan']
+    resource.save
     {}.to_json
   end
 end

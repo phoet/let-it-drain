@@ -25,3 +25,7 @@ And you should be in a Heroku Single Sign On session for your brand new addon!
 - planchange  - working
 - GET SSO     - working
 - POST SSO    - working
+
+
+kensa create let-it-drain --template sinatra
+heroku apps:create let-it-drain --region=eu
