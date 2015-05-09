@@ -103,7 +103,9 @@ class App < Sinatra::Base
     puts params.inspect
     puts body = request.body.read
     LogEntry.create! resource_id: params[:id], message: body
-    settings.sockets[params[:id]].send(body)
+    if socket = settings.sockets[params[:id]]
+      socket.send(body)
+    end
   end
 
   # provision
