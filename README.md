@@ -29,10 +29,16 @@ And you should be in a Heroku Single Sign On session for your brand new addon!
 
 kensa create let-it-drain --template sinatra
 
+kensa sso 554e15e9776f725044000000
+
 kensa test
 
 kensa test provision
 
 kensa test deprovision LASTRUN_ID
 
-kensa sso 554e15e9776f725044000000
+kensa run --production ruby use_let_it_drain.rb
+
+heroku authorizations:create Kenza
+
+kensa push
