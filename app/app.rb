@@ -1,14 +1,16 @@
-require 'bundler'
-Bundler.require
-
-
 STDOUT.sync = true
 
+require 'bundler'
+Bundler.require
 require_relative 'mongo'
 
 class App < Sinatra::Base
   configure :development do
     register Sinatra::Reloader
+  end
+
+  before do
+    show_request
   end
 
   use Rack::Session::Cookie, secret: ENV['SSO_SALT']
@@ -30,18 +32,16 @@ class App < Sinatra::Base
     end
 
     def show_request
-      body = request.body.read
-      unless body.empty?
-        STDOUT.puts "request body:"
-        STDOUT.puts(@json_body = JSON.parse(body))
-      end
-      unless params.empty?
-        STDOUT.puts "params: #{params.inspect}"
-      end
+      puts "request: #{request.request_method} #{request.path} #{params.inspect}"
+      puts "request body: #{request_body}" unless request_body.empty?
+    end
+
+    def request_body
+      @request_body ||= request.body.read
     end
 
     def json_body
-      @json_body || (body = request.body.read && JSON.parse(body))
+      @json_body ||= JSON.parse(request_body)
     end
 
     def get_resource
@@ -49,6 +49,7 @@ class App < Sinatra::Base
     end
   end
 
+  # websocket
   get '/logs' do
     request.websocket do |ws|
       ws.onopen do
@@ -63,6 +64,14 @@ class App < Sinatra::Base
     end
   end
 
+  # drain endpoint
+  post '/drain/:id' do
+    LogEntry.create! resource_id: params[:id], message: request_body
+    if socket = settings.sockets[params[:id]]
+      socket.send(request_body)
+    end
+  end
+
   # sso landing page
   get "/" do
     halt 403, 'not logged in' unless session[:heroku_sso]
@@ -73,44 +82,17 @@ class App < Sinatra::Base
     haml :index
   end
 
-  def sso
-    pre_token = params[:id] + ':' + ENV['SSO_SALT'] + ':' + params[:timestamp]
-    token = Digest::SHA1.hexdigest(pre_token).to_s
-    halt 403 if token != params[:token]
-    halt 403 if params[:timestamp].to_i < (Time.now - 2*60).to_i
-
-    halt 404 unless session[:resource]   = get_resource
-
-    response.set_cookie('heroku-nav-data', value: params['nav-data'])
-    session[:heroku_sso] = params['nav-data']
-    session[:email]      = params[:email]
-
-    redirect '/'
-  end
-
   # sso sign in
   get "/heroku/resources/:id" do
-    show_request
     sso
   end
 
   post '/sso/login' do
-    puts params.inspect
     sso
-  end
-
-  post '/drain/:id' do
-    puts params.inspect
-    puts body = request.body.read
-    LogEntry.create! resource_id: params[:id], message: body
-    if socket = settings.sockets[params[:id]]
-      socket.send(body)
-    end
   end
 
   # provision
   post '/heroku/resources' do
-    show_request
     protected!
 
     resource = Resource.create!(
@@ -134,7 +116,6 @@ class App < Sinatra::Base
 
   # deprovision
   delete '/heroku/resources/:id' do
-    show_request
     protected!
     get_resource.destroy
     "ok"
@@ -142,11 +123,27 @@ class App < Sinatra::Base
 
   # plan change
   put '/heroku/resources/:id' do
-    show_request
     protected!
     resource = get_resource
     resource.update_attributes! plan: json_body['plan']
     resource.save
     {}.to_json
+  end
+
+  private
+
+  def sso
+    pre_token = params[:id] + ':' + ENV['SSO_SALT'] + ':' + params[:timestamp]
+    token = Digest::SHA1.hexdigest(pre_token).to_s
+    halt 403 if token != params[:token]
+    halt 403 if params[:timestamp].to_i < (Time.now - 2*60).to_i
+
+    halt 404 unless session[:resource]   = get_resource
+
+    response.set_cookie('heroku-nav-data', value: params['nav-data'])
+    session[:heroku_sso] = params['nav-data']
+    session[:email]      = params[:email]
+
+    redirect '/'
   end
 end
