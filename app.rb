@@ -53,14 +53,7 @@ class App < Sinatra::Base
     request.websocket do |ws|
       ws.onopen do
         @resource = session[:resource]
-        ws.send("Hello World: #{@resource.id.to_s}")
         settings.sockets[@resource.id.to_s] = ws
-      end
-      ws.onmessage do |msg|
-        EM.next_tick do
-          @resource = session[:resource]
-          settings.sockets[@resource.id.to_s].each {|s| s.send(msg) }
-        end
       end
       ws.onclose do
         @resource = session[:resource]

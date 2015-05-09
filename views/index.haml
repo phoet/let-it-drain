@@ -1,17 +1,32 @@
 !!!
 %html
   %head
+    %meta(charset="utf-8")>
+    %meta(http-equiv="X-UA-Compatible" content="IE=edge")
+    %meta(name="viewport" content="width=device-width, initial-scale=1")
+    %link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css")
+    %link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css")
     = haml :_socket
-  %body
+  %body(role="document")
     = Heroku::Nav::Provider.html
-    %h1 Let It Drain
-    %h2 Info
-    %p You are using resource: #{@resource.id}.
-    %p Located in: #{@resource.region}.
-    %p On plan: #{@resource.plan}
-    %p Logged in as: #{@email}
+    .container.theme-showcase(role="main")
+      %h1 Let It Drain
+      %p
+        You are using resource:
+        %span.label.label-default= @resource.id
+      %p
+        On plan:
+        %span.label.label-default= @resource.plan
+      %p
+        Logged in as:
+        %span.label.label-default= @email
 
-    %h2 Logs
-    %ul#logs
-      - @logs.each do |log|
-        %li= log.message
+      %h2 Logs
+      %ul#logs.list-group
+        - @logs.each do |log|
+          %li.list-group-item= log.message
+
+      #pre#debug
+
+    %script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js")
+    %script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js")

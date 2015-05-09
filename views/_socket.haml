@@ -1,17 +1,21 @@
 :javascript
   window.onload = function(){
     (function(){
+      var debug = function(el){
+        return function(msg){ el.innerHTML = msg + '<br />' + el.innerHTML; }
+      }(document.getElementById('debug'));
       var show = function(el){
         return function(msg) {
           var li = document.createElement("li");
+          li.classList.add('list-group-item');
           li.innerHTML = msg;
           el.appendChild(li);
         }
       }(document.getElementById('logs'));
 
       var ws       = new WebSocket('ws://' + window.location.host + '/logs' );
-      ws.onopen    = function()  { show('websocket opened'); };
-      ws.onclose   = function()  { show('websocket closed'); }
-      ws.onmessage = function(m) { show(m.data); };
+      ws.onopen    = function()  { debug('websocket opened'); };
+      ws.onclose   = function()  { debug('websocket closed'); }
+      ws.onmessage = function(m) { debug('received: ' + m.data); show(m.data); };
     })();
   }
