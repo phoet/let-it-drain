@@ -13,7 +13,8 @@
         }
       }(document.getElementById('logs'));
 
-      var ws       = new WebSocket('ws://' + window.location.host + '/logs' );
+      var scheme   = window.location.protocol == 'http:' ? 'ws' : 'wss';
+      var ws       = new WebSocket(scheme + '://' + window.location.host + '/logs');
       ws.onopen    = function()  { debug('websocket opened'); };
       ws.onclose   = function()  { debug('websocket closed'); }
       ws.onmessage = function(m) { debug('received: ' + m.data); show(m.data); };
