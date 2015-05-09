@@ -123,7 +123,7 @@ class App < Sinatra::Base
     status 201
     body({
            :id => resource.id.to_s,
-           :config => {"LET_IT_DRAIN_URL" => "http://#{request.host}:#{request.port}/drain/#{resource.id.to_s}"},
+           :config => {"LET_IT_DRAIN_URL" => "#{request.scheme}://#{request.host}:#{request.port}/drain/#{resource.id.to_s}"},
     }.to_json)
   end
 
