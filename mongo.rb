@@ -12,5 +12,8 @@ class Resource
   field :plan, type: String
   field :region, type: String
   field :callback_url, type: String
+  field :log_input_url, type: String
+  field :logplex_token, type: String
   field :options, type: String
+  field :uuid, type: String
 end

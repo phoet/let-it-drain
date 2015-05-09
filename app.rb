@@ -121,10 +121,15 @@ class App < Sinatra::Base
       :options => json_body['options']
     )
     status 201
-    body({
-           :id => resource.id.to_s,
-           :config => {"LET_IT_DRAIN_URL" => "#{request.scheme}://#{request.host}:#{request.port}/drain/#{resource.id.to_s}"},
-    }.to_json)
+    log_drain_url = "#{request.scheme}://#{request.host}:#{request.port}/drain/#{resource.id.to_s}"
+    response = {
+      id: resource.id.to_s,
+      config: {"LET_IT_DRAIN_URL" => log_drain_url},
+      log_drain_url: log_drain_url,
+      message: "let-it-drain here: #{log_drain_url}",
+    }
+
+    body(response.to_json)
   end
 
   # deprovision
