@@ -13,6 +13,8 @@ class App < Sinatra::Base
 
   use Rack::Session::Cookie, secret: ENV['SSO_SALT']
 
+  set :sockets, {}
+
   helpers do
     def protected!
       unless authorized?
@@ -47,12 +49,34 @@ class App < Sinatra::Base
     end
   end
 
+  get '/logs' do
+    request.websocket do |ws|
+      ws.onopen do
+        @resource = session[:resource]
+        ws.send("Hello World: #{@resource.id.to_s}")
+        settings.sockets[@resource.id.to_s] = ws
+      end
+      ws.onmessage do |msg|
+        EM.next_tick do
+          @resource = session[:resource]
+          settings.sockets[@resource.id.to_s].each {|s| s.send(msg) }
+        end
+      end
+      ws.onclose do
+        @resource = session[:resource]
+        warn("websocket #{@resource.id.to_s} closed")
+        settings.sockets.delete(@resource.id.to_s)
+      end
+    end
+  end
+
   # sso landing page
   get "/" do
     halt 403, 'not logged in' unless session[:heroku_sso]
-    #response.set_cookie('heroku-nav-data', value: session[:heroku_sso])
+    response.set_cookie('heroku-nav-data', value: session[:heroku_sso])
     @resource = session[:resource]
     @email    = session[:email]
+    @logs     = LogEntry.where(resource_id: @resource.id.to_s)
     haml :index
   end
 
@@ -86,6 +110,7 @@ class App < Sinatra::Base
     puts params.inspect
     puts body = request.body.read
     LogEntry.create! resource_id: params[:id], message: body
+    settings.sockets[params[:id]].send(body)
   end
 
   # provision

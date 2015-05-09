@@ -1,0 +1,5 @@
+#! /bin/sh
+
+payload="`date "+%s"` "
+payload="loggedilog`date "+%s"`"
+curl -X POST http://127.0.0.1:5000/drain/554e15e9776f725044000000 -d $payload "$@"

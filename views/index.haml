@@ -1,10 +1,17 @@
 !!!
 %html
   %head
+    = haml :_socket
   %body
     = Heroku::Nav::Provider.html
-    %p Hello!
+    %h1 Let It Drain
+    %h2 Info
     %p You are using resource: #{@resource.id}.
     %p Located in: #{@resource.region}.
     %p On plan: #{@resource.plan}
     %p Logged in as: #{@email}
+
+    %h2 Logs
+    %ul#logs
+      - @logs.each do |log|
+        %li= log.message

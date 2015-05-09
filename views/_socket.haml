@@ -1,0 +1,17 @@
+:javascript
+  window.onload = function(){
+    (function(){
+      var show = function(el){
+        return function(msg) {
+          var li = document.createElement("li");
+          li.innerHTML = msg;
+          el.appendChild(li);
+        }
+      }(document.getElementById('logs'));
+
+      var ws       = new WebSocket('ws://' + window.location.host + '/logs' );
+      ws.onopen    = function()  { show('websocket opened'); };
+      ws.onclose   = function()  { show('websocket closed'); }
+      ws.onmessage = function(m) { show(m.data); };
+    })();
+  }
