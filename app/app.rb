@@ -14,7 +14,7 @@ class App < Sinatra::Base
   end
 
   use Rack::Session::Cookie, secret: ENV['SSO_SALT']
-
+  set :public_folder, 'public'
   set :sockets, {}
 
   helpers do

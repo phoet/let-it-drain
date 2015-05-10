@@ -2,7 +2,7 @@
   window.onload = function(){
     (function(){
       var debug = function(el){
-        return function(msg){ el.innerHTML = msg + '<br />' + el.innerHTML; }
+        return function(msg){ console.log(msg); }
       }(document.getElementById('debug'));
       var show = function(el){
         return function(msg) {
