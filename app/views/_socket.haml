@@ -1,6 +1,10 @@
 :javascript
   window.onload = function(){
     (function(){
+      var scrollToElement = function(el) {
+        $('html,body').animate({scrollTop: $(el).offset().top}, 600);
+      };
+
       var debug = function(el){
         return function(msg){ console.log(msg); }
       }(document.getElementById('debug'));
@@ -10,6 +14,7 @@
           li.classList.add('list-group-item');
           li.innerHTML = msg;
           el.appendChild(li);
+          scrollToElement(li);
         }
       }(document.getElementById('logs'));
 
