@@ -4,4 +4,4 @@ require 'bundler'
 Bundler.require
 require_relative '../app/mongo'
 
-LogEntry.delete_all(resource_id: "554e15e9776f725044000000")
+LogEntry.delete_all
