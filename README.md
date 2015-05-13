@@ -1,44 +1,7 @@
-## `kensa create my_addon --template sinatra`
+# let-it-drain
 
-this repository is a sinatra template application for use with the 
-Heroku <a href="http://github.com/heroku/kensa">kensa</a> gem
+example implementation of an heroku log-drain plugin with websockets and full stack shizzle!
 
-clone it via:
+https://github.com/phoet/computering/blob/master/example/byol.rb
 
-    > gem install kensa
-    > kensa create my_addon --template sinatra
-    > cd my_addon
-    > bundle install
-    > foreman start
-
-In a new window: 
-
-    > cd my_addon
-    > kensa test provision
-    > kensa sso 1
-
-And you should be in a Heroku Single Sign On session for your brand new addon! 
-
-## Current status: 
-- deprovision - working
-- provision   - working
-- planchange  - working
-- GET SSO     - working
-- POST SSO    - working
-
-
-kensa create let-it-drain --template sinatra
-
-kensa sso 554e15e9776f725044000000
-
-kensa test
-
-kensa test provision
-
-kensa test deprovision LASTRUN_ID
-
-kensa run --production ruby use_let_it_drain.rb
-
-heroku authorizations:create Kenza
-
-kensa push
+http://hamburg.onruby.de/topics/byol-bring-your-own-logging
